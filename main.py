@@ -41,4 +41,3 @@ def key_change():
     salt, enc_data = crypto.encrypt_data(new_key, dec_data)
     db_file.write_db_data(salt, enc_data)
     return {"status": "key_changed"}
-
