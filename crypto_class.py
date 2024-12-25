@@ -104,84 +104,86 @@ class Crypto:
 
     def __master_key_generate(self):
         master_key = os.urandom(32)
-        # master_key_template = [
-        #     (PyKCS11.LowLevel.CKA_CLASS, PyKCS11.LowLevel.CKO_DATA),
-        #     (PyKCS11.LowLevel.CKA_VALUE, master_key),
-        #     (PyKCS11.LowLevel.CKA_TOKEN, PyKCS11.LowLevel.CK_TRUE),
-        #     (PyKCS11.LowLevel.CKA_LABEL, "Master Key"),
-        #     (PyKCS11.LowLevel.CKA_PRIVATE, PyKCS11.LowLevel.CK_TRUE)
-        # ]
-        # master = self.session.createObject(master_key_template)
-        with open(f"./temp", "wb") as f:
-            f.write(master_key)
+        master_key_template = [
+            (PyKCS11.LowLevel.CKA_CLASS, PyKCS11.LowLevel.CKO_DATA),
+            (PyKCS11.LowLevel.CKA_VALUE, master_key),
+            (PyKCS11.LowLevel.CKA_TOKEN, PyKCS11.LowLevel.CK_TRUE),
+            (PyKCS11.LowLevel.CKA_LABEL, "Master Key"),
+            (PyKCS11.LowLevel.CKA_PRIVATE, PyKCS11.LowLevel.CK_TRUE)
+        ]
+        master = self.session.createObject(master_key_template)
+        # with open(f"./temp", "wb") as f:
+        #     f.write(master_key)
         return master_key
 
     def __generate_user_id(self):
         user_id = uuid.uuid4()
-        # user_id_template = [
-        #     (PyKCS11.LowLevel.CKA_CLASS, PyKCS11.LowLevel.CKO_DATA),
-        #     (PyKCS11.LowLevel.CKA_VALUE, str(user_id).encode()),
-        #     (PyKCS11.LowLevel.CKA_TOKEN, PyKCS11.LowLevel.CK_TRUE),
-        #     (PyKCS11.LowLevel.CKA_LABEL, "User ID"),
-        # ]
-        # user_id = self.session.createObject(user_id_template)
-        with open(f"./temp", "ab") as f:
-            f.write(str(user_id).encode())
-        return str(user_id).encode()
-
+        user_id_template = [
+            (PyKCS11.LowLevel.CKA_CLASS, PyKCS11.LowLevel.CKO_DATA),
+            (PyKCS11.LowLevel.CKA_VALUE, str(user_id).encode()),
+            (PyKCS11.LowLevel.CKA_TOKEN, PyKCS11.LowLevel.CK_TRUE),
+            (PyKCS11.LowLevel.CKA_LABEL, "User ID"),
+        ]
+        user_id_obj = self.session.createObject(user_id_template)
+        # with open(f"./temp", "ab") as f:
+        #     f.write(str(user_id).encode())
+        return user_id
+    
     def create_user(self):
         self.__init_crypto_context()
         # token = self.pkcs11.getTokenInfo(self.slot)
         # freepr = token.ulFreePrivateMemory
         # freepb = token.ulTotalPrivateMemory
-        # print(freepb, freepr)
+        # print(freepb,freepr)
         master_key = self.__master_key_generate()
         user_id = self.__generate_user_id()
-        salt, key = self.__generate_key(master_key)
-        self.session.destroyObject(key)
-        # self.session.destroyObject(user_id)
-        # self.session.destroyObject(master_key)
+        salt, _ = self.__generate_key(master_key)
         self.__session_end()
-        return [master_key, user_id, salt, key]
+        return [user_id, salt]
 
     def get_master_key_and_userID(self):
-        #self.__init_crypto_context()
-        #
-        # objects = self.session.findObjects([
-        #         (PyKCS11.LowLevel.CKA_LABEL, "Master Key")
-        # ])
+        self.__init_crypto_context()
+        
+        objects = self.session.findObjects([
+                (PyKCS11.LowLevel.CKA_LABEL, "Master Key")
+                
+        ])
+        for obj in objects:
+            attr = self.session.getAttributeValue(obj, [PyKCS11.LowLevel.CKA_VALUE])
+            master_key = attr[0]
 
-        # for obj in objects:
-        #     attr = self.session.getAttributeValue(obj, [PyKCS11.LowLevel.CKA_VALUE])
-        #     master_key = attr[0]
 
-        # objects = self.session.findObjects([
-        #         (PyKCS11.LowLevel.CKA_LABEL, "User ID")
-        # ])
+        objects = self.session.findObjects([
+                (PyKCS11.LowLevel.CKA_LABEL, "User ID")
+                
+        ])
+        
 
-        # for obj in objects:
-        #     attr = self.session.getAttributeValue(obj, [PyKCS11.LowLevel.CKA_VALUE])
-        #     user_id = attr[0]
-        # self.__session_end()
-        with open("./temp", "rb") as f:
-            data = f.read()
-            master_key, user_id = data[:32], data[32:]
-        return master_key, user_id
+        for obj in objects:
+            attr = self.session.getAttributeValue(obj, [PyKCS11.LowLevel.CKA_VALUE])
+            user_id = attr[0]
+        self.__session_end()
+
+
+        # with open("./temp", "rb") as f:
+        #     data = f.read()
+        #     master_key, user_id = data[:32], data[32:]
+
+        return bytes(master_key), bytes(user_id)
 
     def key_chage(self):
-        #self.__init_crypto_context()
-        #
-        # master_key = self.session.findObjects([
-        #         (PyKCS11.LowLevel.CKA_LABEL, "Master Key")
-        # ])
-        # self.session.destroyObject(master_key)
-        # master_key = self.__master_key_generate()
-        # return new_key
-
-        _, user_id = self.get_master_key_and_userID()
-        new_key = self.__master_key_generate()
-        with open(f"./temp", "ab") as f:
-            f.write(user_id)
+        self.__init_crypto_context()
         
-        return new_key
-    
+        master_key = self.session.findObjects([
+                (PyKCS11.LowLevel.CKA_LABEL, "Master Key")
+        ])
+        self.session.destroyObject(master_key)
+        master_key = self.__master_key_generate()
+        
+
+        # _, user_id = self.get_master_key_and_userID()
+        # master_key = self.__master_key_generate()
+        # with open(f"./temp", "ab") as f:
+        #     f.write(user_id)
+        
+        return master_key

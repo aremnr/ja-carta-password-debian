@@ -5,8 +5,8 @@ crypto = Crypto("1234567890")
 
 def create_db():
     user_info = crypto.create_user()
-    user_db = DB_FILE(user_info[1].decode())
-    user_db.write_db_data(user_info[2], [])
+    user_db = DB_FILE(str(user_info[0]))
+    user_db.write_db_data(user_info[1], [])
     return {"status": "created"}
 
 def get_all():
@@ -41,3 +41,4 @@ def key_change():
     salt, enc_data = crypto.encrypt_data(new_key, dec_data)
     db_file.write_db_data(salt, enc_data)
     return {"status": "key_changed"}
+
