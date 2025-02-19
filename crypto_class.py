@@ -4,7 +4,7 @@ import os
 import uuid
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-
+import sys
 
 class TempClass:
     def __init__(self, user_id, master_key):
@@ -174,16 +174,14 @@ class Crypto:
     def key_chage(self):
         self.__init_crypto_context()
         
-        master_key = self.session.findObjects([
+        master_keys = self.session.findObjects([
                 (PyKCS11.LowLevel.CKA_LABEL, "Master Key")
         ])
-        self.session.destroyObject(master_key)
+        self.session.destroyObject(master_keys[0])
         master_key = self.__master_key_generate()
-        
-
+        self.__session_end()
+        return master_key
         # _, user_id = self.get_master_key_and_userID()
         # master_key = self.__master_key_generate()
         # with open(f"./temp", "ab") as f:
         #     f.write(user_id)
-        
-        return master_key
