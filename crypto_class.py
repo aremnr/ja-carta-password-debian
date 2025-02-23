@@ -15,8 +15,8 @@ class TempClass:
 class Crypto:
     def __init__(self, pin: str, slot: int = 0, lib_path: str = "/usr/lib/libjcPKCS11-2.so"):
         """
-        pin         (required): pin for connect
-        slot        (optional): slot for session
+        pin         (required): pin for connect\n
+        slot        (optional): slot for session\n
         lib_path    (optional): path of pkcs11 library
         """
         self.pin = pin
@@ -78,7 +78,7 @@ class Crypto:
             (PyKCS11.LowLevel.CKA_VALUE, key_bytes),
             (PyKCS11.LowLevel.CKA_ENCRYPT, PyKCS11.LowLevel.CK_TRUE),  
             (PyKCS11.LowLevel.CKA_DECRYPT, PyKCS11.LowLevel.CK_TRUE),
-            (PyKCS11.LowLevel.CKA_LABEL, "Very Very Secret key"),
+            (PyKCS11.LowLevel.CKA_LABEL, "Secret key"),
             (PyKCS11.LowLevel.CKA_GOST28147_PARAMS, gost_params),
         ]
         key = self.session.createObject(key_template)
@@ -112,8 +112,6 @@ class Crypto:
             (PyKCS11.LowLevel.CKA_PRIVATE, PyKCS11.LowLevel.CK_TRUE)
         ]
         master = self.session.createObject(master_key_template)
-        # with open(f"./temp", "wb") as f:
-        #     f.write(master_key)
         return master_key
 
     def __generate_user_id(self):
@@ -125,53 +123,44 @@ class Crypto:
             (PyKCS11.LowLevel.CKA_LABEL, "User ID"),
         ]
         user_id_obj = self.session.createObject(user_id_template)
-        # with open(f"./temp", "ab") as f:
-        #     f.write(str(user_id).encode())
         return user_id
     
     def create_user(self):
         self.__init_crypto_context()
-        # token = self.pkcs11.getTokenInfo(self.slot)
-        # freepr = token.ulFreePrivateMemory
-        # freepb = token.ulTotalPrivateMemory
-        # print(freepb,freepr)
         master_key = self.__master_key_generate()
         user_id = self.__generate_user_id()
-        salt, _ = self.__generate_key(master_key)
+        salt = self.__generate_salt()
         self.__session_end()
         return [user_id, salt]
 
     def get_master_key_and_userID(self):
+        """
+        Get UserID and master key in bytes
+        """
         self.__init_crypto_context()
         
         objects = self.session.findObjects([
                 (PyKCS11.LowLevel.CKA_LABEL, "Master Key")
-                
         ])
+
         for obj in objects:
             attr = self.session.getAttributeValue(obj, [PyKCS11.LowLevel.CKA_VALUE])
             master_key = attr[0]
 
-
         objects = self.session.findObjects([
                 (PyKCS11.LowLevel.CKA_LABEL, "User ID")
-                
         ])
-        
-
         for obj in objects:
             attr = self.session.getAttributeValue(obj, [PyKCS11.LowLevel.CKA_VALUE])
             user_id = attr[0]
         self.__session_end()
 
-
-        # with open("./temp", "rb") as f:
-        #     data = f.read()
-        #     master_key, user_id = data[:32], data[32:]
-
         return bytes(master_key), bytes(user_id)
 
     def key_chage(self):
+        """
+        Changing master key
+        """
         self.__init_crypto_context()
         
         master_keys = self.session.findObjects([
@@ -181,7 +170,22 @@ class Crypto:
         master_key = self.__master_key_generate()
         self.__session_end()
         return master_key
-        # _, user_id = self.get_master_key_and_userID()
-        # master_key = self.__master_key_generate()
-        # with open(f"./temp", "ab") as f:
-        #     f.write(user_id)
+    
+    def delte_user(self):
+        """
+        Deleting UserID and master key of all users from token
+        """
+        self.__init_crypto_context()
+        objects = self.session.findObjects([
+                (PyKCS11.LowLevel.CKA_LABEL, "Master Key")
+        ])
+        for obj in objects:
+            self.session.destroyObject(obj)
+
+        objects = self.session.findObjects([
+                (PyKCS11.LowLevel.CKA_LABEL, "User ID")
+        ])
+        for obj in objects:
+            self.session.destroyObject(obj)
+        self.__session_end()
+        return {"status": "data_deleted"}

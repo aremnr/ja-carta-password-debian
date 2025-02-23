@@ -14,7 +14,7 @@ def create_db():
     user_info = crypto.create_user()
     user_db = DB_FILE(str(user_info[0]))
     user_db.write_db_data(user_info[1], [])
-    return {"status": "created"}
+    return {"status": "db_created"}
 
 def get_all(key_return: bool = False):
     master, user_id = crypto.get_master_key_and_userID()
@@ -37,20 +37,51 @@ def get_correct(domain: str):
             return res
     raise Exception("Data don't found")
 
-
 def add_data(domain: str, username: str, password: str):
     master_key, dec_data, db_file = get_all(key_return=True)
     new_data = dec_data + f"{domain}\t{username}\t{password}\n"
     salt, enc_data = crypto.encrypt_data(master_key, new_data)
     db_file.write_db_data(salt, enc_data)
-    return {"status": "added"}
+    return {"status": "data_added"}
 
 def key_change():
     _, dec_data, db_file = get_all()
     new_key = crypto.key_chage()
     salt, enc_data = crypto.encrypt_data(new_key, dec_data)
     db_file.write_db_data(salt, enc_data)
-    return {"status": "key_changed"}
+    return {"status": "data_key_changed"}
+
+def clear_db():
+    _, _, db_file = get_all()
+    return(db_file.clear_db())
+
+def delete_db():
+    _, _, db_file = get_all()
+    if crypto.delte_user()["status"] == "data_deleted":
+        return(db_file.clear_db())
+
+def delete_data(domain: str):
+    master_key, data, db_file = get_all(key_return=True)
+    data = list(data.replace("\x00", "").split())
+    index = data.index(domain)
+    data.pop(index)
+    data.pop(index)
+    data.pop(index)
+    db_file.clear_db()
+    salt, enc_data = crypto.encrypt_data(master_key, '\t'.join(data))
+    db_file.write_db_data(salt, enc_data)
+    return {"status": "data_deleted"}
+
+def change_data(domain: str, username: str, password: str):
+    master_key, data, db_file = get_all(key_return=True)
+    data = list(data.replace("\x00", "").split())
+    index = data.index(domain)
+    data[index+1] = username
+    data[index+2] = password
+    db_file.clear_db()
+    salt, enc_data = crypto.encrypt_data(master_key, '\t'.join(data))
+    db_file.write_db_data(salt, enc_data)
+    return {"status": "data_changed"}
 
 args = parser.parse_args()
 if args.mode == "create database":
@@ -58,8 +89,18 @@ if args.mode == "create database":
 elif args.mode == "add data":
     print(add_data(args.domain, args.username, args.password))
 elif args.mode == "get all":
-    print(get_all())
+    _, data, _ = get_all()
+    print(list(data.replace("\x00", "").split()))
 elif args.mode == "get correct":
     print(get_correct(args.domain))
-elif args.mode == "key change":
+elif args.mode == "change key":
     print(key_change())
+elif args.mode == "delete data":
+    delete_data(args.domain)
+elif args.mode == "delete database":
+    print(delete_db())
+elif args.mode == "clear database":
+    print(clear_db())
+elif args.mode == "change data":
+    print(change_data(args.domain, args.username, args.password))
+

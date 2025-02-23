@@ -7,7 +7,7 @@ class DB_FILE:
         self.filename = name
     
     def create_db_dir(self):
-        if not(os.path.exists(f"./db_files/")):
+        if not(os.path.exists("./db_files/")):
             os.mkdir("./db_files/")
         
     def check_db_file(self) -> bool:
@@ -26,3 +26,14 @@ class DB_FILE:
                 data = f.read()
                 return data[:24], data[24:]
         raise Exception("File not found")
+    
+    def clear_db(self):
+        _, salt = self.read_db_file()
+        data = []
+        self.write_db_data(salt, data)
+        return {"status": "db_clear"}
+    
+    def delete_db(self):
+        if self.check_db_file():
+            os.remove(f"./db_files/{self.filename}")
+            return {"status" : "db_deleted"}
