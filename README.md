@@ -34,3 +34,23 @@ python3 main.py -m "get correct" -d example.com
 ```bash
 python3 main.py -m "key change"
 ```
+
+Удаление данных про определённый домен
+```bash
+python3 main.py -m "delete data" -d example.com
+```
+
+Удаление файла с данными, а так же пользователя на токене и его ключа на токене
+```bash
+python3 main.py -m "delete database"
+```
+
+Удаление всех данных из файла
+```bash
+python3 main.py -m "clear database"
+```
+
+Изменение данных про опреденный домен
+```bash
+python3 main.py -m "change data" -d example.com -u admin -p admin
+```
