@@ -8,7 +8,7 @@ parser.add_argument("-d", "--domain", type=str, help="set domain")
 parser.add_argument("-u", "--username", type=str, help="set username")
 parser.add_argument("-p", "--password", type=str, help="set password")
 
-crypto = Crypto("1234567890")
+crypto = Crypto("12345678", lib_path="/usr/lib/librtpkcs11ecp.so")
 
 def create_db():
     user_info = crypto.create_user()
@@ -46,7 +46,7 @@ def add_data(domain: str, username: str, password: str):
 
 def key_change():
     _, dec_data, db_file = get_all()
-    new_key = crypto.key_chage()
+    new_key = crypto.key_change()
     salt, enc_data = crypto.encrypt_data(new_key, dec_data)
     db_file.write_db_data(salt, enc_data)
     return {"status": "data_key_changed"}
@@ -57,8 +57,11 @@ def clear_db():
 
 def delete_db():
     _, _, db_file = get_all()
-    if crypto.delte_user()["status"] == "data_deleted":
+    if crypto.delete_user()["status"] == "data_deleted":
         return(db_file.clear_db())
+
+def check_token():
+    return crypto.check_token()
 
 def delete_data(domain: str):
     master_key, data, db_file = get_all(key_return=True)
@@ -103,4 +106,6 @@ elif args.mode == "clear database":
     print(clear_db())
 elif args.mode == "change data":
     print(change_data(args.domain, args.username, args.password))
+elif args.mode == "check token":
+    print(check_token())
 

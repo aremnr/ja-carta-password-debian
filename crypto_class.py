@@ -79,7 +79,7 @@ class Crypto:
             (PyKCS11.LowLevel.CKA_ENCRYPT, PyKCS11.LowLevel.CK_TRUE),  
             (PyKCS11.LowLevel.CKA_DECRYPT, PyKCS11.LowLevel.CK_TRUE),
             (PyKCS11.LowLevel.CKA_LABEL, "Secret key"),
-            (PyKCS11.LowLevel.CKA_GOST28147_PARAMS, gost_params),
+            #(PyKCS11.LowLevel.CKA_GOST28147_PARAMS, gost_params),
         ]
         key = self.session.createObject(key_template)
 
@@ -157,7 +157,7 @@ class Crypto:
 
         return bytes(master_key), bytes(user_id)
 
-    def key_chage(self):
+    def key_change(self):
         """
         Changing master key
         """
@@ -171,7 +171,7 @@ class Crypto:
         self.__session_end()
         return master_key
     
-    def delte_user(self):
+    def delete_user(self):
         """
         Deleting UserID and master key of all users from token
         """
@@ -189,3 +189,11 @@ class Crypto:
             self.session.destroyObject(obj)
         self.__session_end()
         return {"status": "data_deleted"}
+    
+    def check_token(self):
+        self.__init_lib()
+        try:
+            self.pkcs11.getMechanismList(self.slot)
+            return {"status": "Token is found"}
+        except:
+            return {"status": "Token not found"}
