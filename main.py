@@ -68,8 +68,9 @@ def delete_data(domain: str):
     data.pop(index)
     data.pop(index)
     db_file.clear_db()
-    salt, enc_data = crypto.encrypt_data(master_key, '\t'.join(data))
-    db_file.write_db_data(salt, enc_data)
+    if data:
+        salt, enc_data = crypto.encrypt_data(master_key, '\t'.join(data))
+        db_file.write_db_data(salt, enc_data)
     return {"status": "data_deleted"}
 
 def change_data(domain: str, username: str, password: str):
