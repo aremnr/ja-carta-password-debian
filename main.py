@@ -96,6 +96,5 @@ def get_fuzzy(domain):
     r_data = []
     for match, _ in matches:
         data = get_correct(match)
-        print(data)
         r_data.extend([*data])
     return r_data
