@@ -92,11 +92,9 @@ class Crypto:
         salt, key = self.__generate_key(master_key)
         data_2 = self.__pad_data(data.encode())
         enc_text = b""
-        print(len(data_2))
         while len(data_2) > 32:
             enc_text += bytes(self.session.encrypt(key, data_2[0:32],  self.mechanism))
             data_2 = data_2[32:]
-        print(len(data_2))
         enc_text += bytes(self.session.encrypt(key, data_2,  self.mechanism))
         self.session.destroyObject(key)
         self.__session_end()

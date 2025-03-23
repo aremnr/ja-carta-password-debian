@@ -28,7 +28,7 @@ class DB_FILE:
         raise Exception("File not found")
     
     def clear_db(self):
-        self.write_db_data(None)
+        self.write_db_data(b"", b"")
         return {"status": "db_clear"}
     
     def delete_db(self):

@@ -29,11 +29,15 @@ def create():
 
 @app.post("/add_data")
 def add(data: Data):
-    return add_data(data.domain, data.login, data.password)
+    if get_correct(data.domain) == {}:
+        return add_data(data.domain, data.login, data.password)
+    return {"status": "domain_is_already_in_db"}
 
-@app.get("/get_correct")
-def create(domain: str):
-    return get_correct(domain)
+@app.post("/get_correct")
+def correct(data: Data):
+    data = get_correct(data.domain)
+    r_data = Data(login=data[1], password=data[2], domain=data[0])
+    return r_data
 
 @app.get("/check_token")
 def check():
@@ -43,9 +47,9 @@ def check():
 def change_k():
     return key_change()
 
-@app.delete("/delete_data")
-def delete_d(domain: str):
-    return delete_data(domain)
+@app.post("/delete_data")
+def delete_d(data: Data):
+    return delete_data(data.domain)
 
 @app.delete("/delete_db")
 def delete_database():

@@ -27,13 +27,12 @@ def get_all(key_return: bool = False):
 
 def get_correct(domain: str):
     _, dec_data, _ = get_all()
-    data_list = list(dec_data.split("\n"))
+    data_list = list(dec_data.replace("\x00", "").split("\n"))
     for i in data_list:
         if domain in i[:i.find("\t")]:
             res = list(i.split('\t'))
-            del res[0]
             return res
-    raise Exception("Data don't found")
+    return {}
 
 def add_data(domain: str, username: str, password: str):
     master_key, dec_data, db_file = get_all(key_return=True)
