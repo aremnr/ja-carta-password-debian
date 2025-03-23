@@ -43,7 +43,8 @@ class Crypto:
         return True
 
     def __mechanism_set(self):
-        self.mechanism = PyKCS11.Mechanism(PyKCS11.LowLevel.CKM_GOST28147_ECB, [])
+
+        self.mechanism = PyKCS11.Mechanism(PyKCS11.LowLevel.CKM_GOST28147_ECB, None)
         return self.mechanism
      
     def __init_crypto_context(self):
@@ -56,6 +57,7 @@ class Crypto:
         return salt
 
     def __pad_data(self, data, block_size=8): 
+        if len(data)%8 == 0: return data
         padding_len = block_size - (len(data) % block_size)
         return data + bytes([0] * padding_len)
 
@@ -88,7 +90,14 @@ class Crypto:
     def encrypt_data(self, master_key: bytes, data: str):
         self.__init_crypto_context()
         salt, key = self.__generate_key(master_key)
-        enc_text = self.session.encrypt(key, self.__pad_data(data.encode()), self.mechanism)
+        data_2 = self.__pad_data(data.encode())
+        enc_text = b""
+        print(len(data_2))
+        while len(data_2) > 32:
+            enc_text += bytes(self.session.encrypt(key, data_2[0:32],  self.mechanism))
+            data_2 = data_2[32:]
+        print(len(data_2))
+        enc_text += bytes(self.session.encrypt(key, data_2,  self.mechanism))
         self.session.destroyObject(key)
         self.__session_end()
         return salt, enc_text
@@ -97,7 +106,11 @@ class Crypto:
         if not data: return b''
         self.__init_crypto_context()
         __, key = self.__generate_key(master_key, salt)
-        dec_data = self.session.decrypt(key, data, self.mechanism)
+        dec_data = b""
+        while len(data) > 32:
+            dec_data += bytes(self.session.decrypt(key, data[0:32], self.mechanism))
+            data = data[32:]
+        dec_data += bytes(self.session.decrypt(key, data[0:32], self.mechanism))
         self.session.destroyObject(key)
         self.__session_end()
         return dec_data
@@ -194,6 +207,7 @@ class Crypto:
         self.__init_lib()
         try:
             self.pkcs11.getMechanismList(self.slot)
+            
             return {"status": "Token is found"}
         except:
             return {"status": "Token not found"}

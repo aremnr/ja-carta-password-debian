@@ -28,9 +28,7 @@ class DB_FILE:
         raise Exception("File not found")
     
     def clear_db(self):
-        _, salt = self.read_db_file()
-        data = []
-        self.write_db_data(salt, data)
+        self.write_db_data(None)
         return {"status": "db_clear"}
     
     def delete_db(self):
