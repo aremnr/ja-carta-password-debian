@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from main import get_all, get_correct, add_data, delete_data, delete_db, clear_db, change_data, check_token, create_db, key_change
+from main import get_all, get_correct, add_data, delete_data, delete_db, clear_db, change_data, check_token, create_db, key_change, get_fuzzy
 
 app = FastAPI()
 
@@ -64,3 +64,13 @@ def clear():
 @app.post("/change_data")
 def change(data: Data):
     return change_data(data.domain, data.login, data.password)
+
+@app.post("/get_fuzzy")
+def fuzzy(data: Data):
+    data = get_fuzzy(data.domain)
+    ret_data = DataList(data_list=[])
+    for i in range(0, len(data), 3):
+        new = Data(domain=data[i], login=data[i+1], password=data[i+2])
+        ret_data.data_list.append(new)
+        del new
+    return ret_data

@@ -1,5 +1,6 @@
 from crypto_class import Crypto
 from db_file import DB_FILE
+from fuzzywuzzy import process
 
 crypto = Crypto("12345678", lib_path="/usr/lib/librtpkcs11ecp.so")
 
@@ -86,3 +87,15 @@ def change_data(domain: str, username: str, password: str):
     salt, enc_data = crypto.encrypt_data(master_key, '\t'.join(data))
     db_file.write_db_data(salt, enc_data)
     return {"status": "data_changed"}
+
+def get_fuzzy(domain):
+    _, dec_data, _ = get_all()
+    data = list(dec_data.replace("\x00", "").split())
+    domains = data[::3]
+    matches = process.extract(domain, domains, limit=15)
+    r_data = []
+    for match, _ in matches:
+        data = get_correct(match)
+        print(data)
+        r_data.extend([*data])
+    return r_data
