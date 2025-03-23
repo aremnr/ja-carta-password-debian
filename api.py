@@ -36,8 +36,10 @@ def add(data: Data):
 @app.post("/get_correct")
 def correct(data: Data):
     data = get_correct(data.domain)
-    r_data = Data(login=data[1], password=data[2], domain=data[0])
-    return r_data
+    if data != {}:
+        r_data = Data(login=data[1], password=data[2], domain=data[0])
+        return r_data
+    return {}
 
 @app.get("/check_token")
 def check():

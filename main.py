@@ -29,7 +29,7 @@ def get_correct(domain: str):
     _, dec_data, _ = get_all()
     data_list = list(dec_data.replace("\x00", "").split("\n"))
     for i in data_list:
-        if domain in i[:i.find("\t")]:
+        if domain == i[:i.find("\t")]:
             res = list(i.split('\t'))
             return res
     return {}
@@ -43,6 +43,9 @@ def add_data(domain: str, username: str, password: str):
 
 def key_change():
     _, dec_data, db_file = get_all()
+    if dec_data == '':
+        new_key = crypto.key_change()
+        return {"status": "data_key_changed"}
     new_key = crypto.key_change()
     salt, enc_data = crypto.encrypt_data(new_key, dec_data)
     db_file.write_db_data(salt, enc_data)
