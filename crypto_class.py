@@ -6,11 +6,6 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 import sys
 
-class TempClass:
-    def __init__(self, user_id, master_key):
-        self.user_id = user_id
-        self.master_key = master_key
-
 
 class Crypto:
     def __init__(self, pin: str, slot: int = 0, lib_path: str = "/usr/lib/libjcPKCS11-2.so"):
@@ -53,7 +48,7 @@ class Crypto:
         self.__mechanism_set()
     
     def __generate_salt(self):
-        salt = os.urandom(24)
+        salt = os.urandom(16)
         return salt
 
     def __pad_data(self, data, block_size=8): 

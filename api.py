@@ -14,8 +14,7 @@ class DataList(BaseModel):
 
 @app.get('/get_all')
 def get():
-    _, data, _ = get_all()
-    data = list(data.replace("\x00", "").split())
+    data = get_all()
     ret_data = DataList(data_list=[])
     for i in range(0, len(data), 3):
         new = Data(domain=data[i], login=data[i+1], password=data[i+2])

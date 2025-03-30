@@ -13,18 +13,31 @@ class DB_FILE:
     def check_db_file(self) -> bool:
         return os.path.exists(f"./db_files/{self.filename}") and os.path.isfile(f"./db_files/{self.filename}")
     
-    def write_db_data(self, salt: bytes, data: Any):
+    def init_db(self):
         self.create_db_dir()
         with open(f"./db_files/{self.filename}", "wb") as f:
-            f.write(salt)
-            f.write(bytes(data))
+            f.write(b"\n")
         return True
-        
+
+    def write_db_data(self, domains, passwds):
+        if self.check_db_file():
+            with open(f"./db_files/{self.filename}", "wb") as f:
+                f_dom = ";".join(domains)
+                f_passwds = "".join(i.decode() for i in passwds)
+                new_data = f"{f_dom}\n{f_passwds}"
+                f.write(new_data.encode())
+ 
     def read_db_file(self):
         if self.check_db_file():
             with open(f"./db_files/{self.filename}", "rb") as f:
-                data = f.read()
-                return data[:24], data[24:]
+                domains = f.readline().decode()
+                if domains.strip("\n"):
+                    domains = domains.strip("\n").split(";")
+                    passwds = f.readlines() 
+                else:
+                    domains = []
+                    passwds = []
+                return domains, passwds
         raise Exception("File not found")
     
     def clear_db(self):
