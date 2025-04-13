@@ -25,25 +25,27 @@ def create_db():
 def get_all():
     try:
         master, user_db = get_init_data()
-        _, passwords = user_db.read_db_file()
+        domains, _ = user_db.read_db_file()
     except: 
         create_db()
         return get_all()
-    r_data = []
-    for i in passwords:
-        a = i.decode().strip("\n").split("\t")
-        r_data.append(a[0])
-        a[1] = ast.literal_eval(a[1])
-        password = crypto.decrypt_data(master, a[1][16:], a[1][:16]).decode().replace("\x00", "")
-        r_data.extend(password.split("\t"))
+    r_data = len(domains)
+    # for i in passwords:
+    #     a = i.decode().strip("\n").split("\t")
+    #     r_data.append(a[0])
+    #     a[1] = ast.literal_eval(a[1])
+    #     password = crypto.decrypt_data(master, a[1][16:], a[1][:16]).decode().replace("\x00", "")
+    #     r_data.extend(password.split("\t"))
     return r_data    
 
-def get_correct(domain: str):
+def get_correct(domain: str = '', id: int = 0):
     master, user_db = get_init_data()
     domains, passwds = user_db.read_db_file()
     try:
-        id = domains.index(domain)
-    except ValueError:
+        if domain != '':
+            id = domains.index(domain)
+        test = domains[id]
+    except (ValueError, IndexError):
         return {}
     passwd = passwds[id]
     r_data = []

@@ -9,18 +9,21 @@ class Data(BaseModel):
     password: str = ""
     domain: str = ""
 
+class Id(BaseModel):
+    id: int
+
 class DataList(BaseModel):
     data_list: list[Data]
 
 @app.get('/get_all')
 def get():
     data = get_all()
-    ret_data = DataList(data_list=[])
-    for i in range(0, len(data), 3):
-        new = Data(domain=data[i], login=data[i+1], password=data[i+2])
-        ret_data.data_list.append(new)
-        del new
-    return ret_data
+    # ret_data = DataList(data_list=[])
+    # for i in range(0, len(data), 3):
+    #     new = Data(domain=data[i], login=data[i+1], password=data[i+2])
+    #     ret_data.data_list.append(new)
+    #     del new
+    return {"password_count": data}
 
 @app.get("/create_db")
 def create():
@@ -33,8 +36,8 @@ def add(data: Data):
     return {"status": "domain_is_already_in_db"}
 
 @app.post("/get_correct")
-def correct(data: Data):
-    data = get_correct(data.domain)
+def correct(data: Id):
+    data = get_correct(id=data.id)
     if data != {}:
         r_data = Data(login=data[1], password=data[2], domain=data[0])
         return r_data
