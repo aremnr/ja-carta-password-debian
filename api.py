@@ -38,10 +38,10 @@ def add(data: Data):
 @app.post("/get_correct")
 def correct(data: Id):
     data = get_correct(id=data.id)
-    if data != {}:
+    if type(data) != dict:
         r_data = Data(login=data[1], password=data[2], domain=data[0])
         return r_data
-    return {}
+    return data
 
 @app.get("/check_token")
 def check():

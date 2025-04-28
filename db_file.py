@@ -13,15 +13,17 @@ class DB_FILE:
     def check_db_file(self) -> bool:
         return os.path.exists(f"./db_files/{self.filename}") and os.path.isfile(f"./db_files/{self.filename}")
     
-    def init_db(self):
+    def init_db(self, check_text):
         self.create_db_dir()
         with open(f"./db_files/{self.filename}", "wb") as f:
+            f.write(check_text)
             f.write(b"\n")
         return True
 
-    def write_db_data(self, domains, passwds):
+    def write_db_data(self, domains, passwds, check_text):
         if self.check_db_file():
             with open(f"./db_files/{self.filename}", "wb") as f:
+                f.write(check_text)
                 f_dom = ";".join(domains)
                 f_passwds = "".join(i.decode() for i in passwds)
                 new_data = f"{f_dom}\n{f_passwds}"
@@ -30,18 +32,22 @@ class DB_FILE:
     def read_db_file(self):
         if self.check_db_file():
             with open(f"./db_files/{self.filename}", "rb") as f:
-                domains = f.readline().decode()
+                line = f.readline()
+                check_text = line[:32]
+                domains = line[32:].decode()
+                
                 if domains.strip("\n"):
                     domains = domains.strip("\n").split(";")
                     passwds = f.readlines() 
                 else:
                     domains = []
                     passwds = []
-                return domains, passwds
+                return domains, passwds, check_text
         raise Exception("File not found")
     
     def clear_db(self):
-        self.write_db_data(b"", b"")
+        _, _, check_text = self.read_db_file()
+        self.write_db_data(b"", b"", check_text)
         return {"status": "db_clear"}
     
     def delete_db(self):

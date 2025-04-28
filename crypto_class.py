@@ -4,7 +4,6 @@ import os
 import uuid
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-import sys
 
 
 class Crypto:
@@ -17,6 +16,7 @@ class Crypto:
         self.pin = pin
         self.slot = slot
         self.lib_path = lib_path
+        self.check_text = b""
 
     def __init_lib(self):
         pkcs11 = PyKCS11.PyKCS11Lib()
@@ -82,9 +82,9 @@ class Crypto:
 
         return salt, key
 
-    def encrypt_data(self, master_key: bytes, data: str):
+    def encrypt_data(self, master_key: bytes, data: str, salt: bytes = b""):
         self.__init_crypto_context()
-        salt, key = self.__generate_key(master_key)
+        salt, key = self.__generate_key(master_key, salt)
         data_2 = self.__pad_data(data.encode())
         enc_text = b""
         while len(data_2) > 32:
@@ -204,3 +204,8 @@ class Crypto:
             return {"status": "Token is found"}
         except:
             return {"status": "Token not found"}
+        
+    def return_hash(self, text: bytes):
+        hash = hashes.Hash(hashes.SHA256())
+        hash.update(text)
+        return(hash.finalize())
