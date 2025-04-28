@@ -16,3 +16,4 @@
 | db_deleted | База данных успешно удалена |
 | Token is found | Токен найден |
 | Token not found | Токен не найдет |
+| key_not_accepted | Ключ не соответствует нужному |
