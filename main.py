@@ -41,9 +41,14 @@ def get_all():
     #     r_data.extend(password.split("\t"))
     return r_data    
 
-def get_correct(domain: str = '', id: int = 0):
+def get_correct(domain: str = '', id: int = 0, master: b"" = b"", user_db: DB_FILE = ""):
     try:
-        master, user_db = get_init_data()
+        if master == b"" and user_db == "":
+            master, user_db = get_init_data()
+        elif master != b"" and user_db == "":
+            _, user_db = get_init_data()
+        elif master != b"" and user_db != "":
+            pass
     except:
         create_db()
         return get_correct(domain, id)
@@ -86,26 +91,34 @@ def add_data(domain: str, username: str, password: str):
 
 def key_change():
     try:
-        _, db_file = get_init_data()
-        _, passwords, check_text = db_file.read_db_file()
+        master1, db_file1 = get_init_data()
+        domains, _, check_text = db_file1.read_db_file()
     except:
         create_db()
         return key_change()
-    if passwords == []:
+    passwords_count = get_all()
+    if passwords_count == 0:
         crypto.key_change()
         return {"status": "data_key_changed"}
     if not checker(check_text):
         return {"status": "key_not_accepted"}
-    passwords_count = get_all()
-    all_passwords = []
-    for i in range(passwords_count):
-        data = get_correct(id=i)
-        all_passwords.extend(data)
-    _ = crypto.key_change()
-    delete_db()
+    crypto.delete_user()
     create_db()
     for i in range(passwords_count):
-        add_data(all_passwords[i*3+0], all_passwords[i*3+1], all_passwords[i*3+2])
+        data_to_add = []
+        data = get_correct(id=i, master=master1, user_db=db_file1)
+        data_to_add.extend(data)
+        add_data(data_to_add[0], data_to_add[1], data_to_add[2])
+    db_file1.delete_db()
+    # all_passwords = []
+    # for i in range(passwords_count):
+    #     data = get_correct(id=i)
+    #     all_passwords.extend(data)
+    # _ = crypto.key_change()
+    # delete_db()
+    # create_db()
+    # for i in range(passwords_count):
+    #     add_data(all_passwords[i*3+0], all_passwords[i*3+1], all_passwords[i*3+2])
     # dec_data = get_all()
     # new_data = []
     # 
