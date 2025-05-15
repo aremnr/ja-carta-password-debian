@@ -2,7 +2,7 @@ from crypto_class import Crypto
 from db_file import DB_FILE
 from fuzzywuzzy import process
 import ast
-from re import fullmatch, search
+from re import fullmatch
 
 crypto = Crypto("12345678", lib_path="/usr/lib/librtpkcs11ecp.so")
 
@@ -77,7 +77,8 @@ def add_data(domain: str, username: str, password: str):
     try:   
         master, user_db = get_init_data()
         domains, passwords, check_text = user_db.read_db_file()
-    except:
+    except BaseException as e:
+        print(e)
         create_db()
         return add_data(domain, username, password)
     if not checker(check_text):
@@ -110,23 +111,6 @@ def key_change():
         data_to_add.extend(data)
         add_data(data_to_add[0], data_to_add[1], data_to_add[2])
     db_file1.delete_db()
-    # all_passwords = []
-    # for i in range(passwords_count):
-    #     data = get_correct(id=i)
-    #     all_passwords.extend(data)
-    # _ = crypto.key_change()
-    # delete_db()
-    # create_db()
-    # for i in range(passwords_count):
-    #     add_data(all_passwords[i*3+0], all_passwords[i*3+1], all_passwords[i*3+2])
-    # dec_data = get_all()
-    # new_data = []
-    # 
-    # for i in range(0, len(dec_data), 3):
-    #     salt, enc_data = crypto.encrypt_data(new_key, f"{dec_data[i+1]}\t{dec_data[i+2]}")
-    #     line = f"{dec_data[i]}\t{salt}{enc_data}\n"
-    #     new_data.append(line.encode())
-    # db_file.write_db_data(domains, new_data, check_text)
     return {"status": "data_key_changed"}
 
 def clear_db():
@@ -197,9 +181,8 @@ def get_fuzzy(domain):
         r_data.extend([*data])
     return r_data
 
-
 def checker(check_text):
-    print(check_text, "|", crypto.check_text, "|", check_text==crypto.check_text)
+    
     if crypto.check_text and check_text==crypto.check_text:
         return True
     try:
